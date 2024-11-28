@@ -157,7 +157,7 @@ for tr in trs:
     temp[3] = k
     acNxtContest.append(temp)
     temp = []
-# print(acNxtContest)
+print(acNxtContest)
 
 url = 'https://leetcode.com/contest/'
 driver.get(url)
@@ -178,26 +178,87 @@ for tr in trs:
     x = weekday_to_num[x[0]]
     today = datetime.date.today()
     x = today + datetime.timedelta((x-1 - today.weekday()) % 7)
-    # x = re.findall(r"\d+", str(x))
+    x = re.findall(r"\d+", str(x))
     y = re.findall(r"\d+", temp[1])
     if "PM" in temp[1]:
         y[0] = int(y[0])+12
     y = datetime.time(int(y[0]), int(y[1]))
     x = datetime.datetime.combine(x, y)
-    # print(x)
+    print(x)
     temp[1] = [str(x.year), str(x.month), str(x.day), str(x.hour), str(x.minute)]
     temp.append(x)
     x = x-datetime.datetime.now()
-    # print(str(x))
+    print(str(x))
     temp.append(x)
+    print(temp)
     contests.append(temp)
     temp = []
 lcNxtContest = contests
-# print(lcNxtContest)
+print(lcNxtContest)
 
-# from operator import itemgetter
+if driver:
+    driver.quit()
+
+from operator import itemgetter
+
 allContests = ccNxtContest+cfNxtContest+acNxtContest+lcNxtContest
 sorted_list = sorted(allContests, key=itemgetter(1))
 for i in sorted_list:
     print(i)
-# print(sorted_list)
+
+def html_write_contests(sorted_list, output_filename):
+    html = """<!DOCTYPE html>
+    <html>
+    <head>
+        <title>Upcoming Contests</title>
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }
+            .sub-table td {
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+    <table>
+        <thead>
+            <tr>
+                <th>Time Left</th>
+                <th>Contest Title</th>
+                <th>Contest Time</th>
+                <th>Duration</th>
+                <th>Link</th>
+            </tr>
+        </thead>
+        <tbody>"""
+
+    for i in sorted_list:
+        time_left=datetime.datetime(int(i[1][0]), int(i[1][1]), int(i[1][2]), int(i[1][3]), int(i[1][4]))-datetime.datetime.now()
+        days = time_left.days
+        hours, remainder = divmod(time_left.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        time_left_str = f"{days} days, {hours:02}:{minutes:02}:{seconds:02}"
+
+        time_when=f"{i[1][3]}:{i[1][4]}</br>{i[1][2]}/{i[1][1]}/{i[1][0]}"
+
+        html += f"<tr><td>{time_left_str}</td><td>{i[0]}</td><td>{time_when}</td><td>{i[2] if i[2]!=i[-1] else ''}</td><td><a href={i[-1]}>{i[-1]}</a></td></tr>"
+
+    html += "\n</tbody></table></body></html>"
+
+    # Save the output
+    with open(output_filename, "w") as f:
+        f.write(html)
+
+output_html_filename="upcoming_contests.html"
+html_write_contests(sorted_list, output_html_filename)
+
+# Open created output file
+import webbrowser
+webbrowser.open(output_html_filename)
