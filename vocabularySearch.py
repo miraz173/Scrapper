@@ -13,12 +13,12 @@ def getInfo(query):
     element = soup.find(class_="vmod")
 
     if not element:
-        print(f"For {query}, Element with class 'MjjYbd' not found.")
+        print(f"For {query}, Element with class 'vmod' not found.")
         return {"word":query, "partsOfSpeech":'', "Definitions":'', "Example": '', "Similarity":[], "Dissimilarity": []}
 
 
     else:
-        partsOfSpeech = soup.find(class_="YrbPuc").text
+        partsOfSpeech = soup.find(class_="YrbPuc").text if soup.find(class_="YrbPuc") else 'N/A'
         print(f"    {query}: ({partsOfSpeech})")  # or use `print(element)` for the full HTML
 
         target = soup.find(class_="thODed")
@@ -82,7 +82,7 @@ def getInfo(query):
         return {"word":query, "partsOfSpeech":partsOfSpeech, "Definitions":defs, "Example": exmpls, "Similarity":sims, "Dissimilarity": dissims}
 
 
-queries=["taciturn","aloof","flippant", "zealous", "austere", "frivolous", "vendetta"]
+queries=["frivolous", "feckels", "taciturn", "scrupolous", "aloof", "flippant", "zealous", "austere", "exacting", "vendetta", "meticulous"]
 result=[]
 for query in queries:
     try:
@@ -93,47 +93,63 @@ for query in queries:
 
 html = """<!DOCTYPE html>
 <html>
-<head>
-    <title>Two Sub-Rows in a Row</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        .sub-table td {
-            border: none;
-        }
-    </style>
-</head>
-<body>
-<table>
-    <thead>
-        <tr>
-            <th>Word</th>
-            <th>Part of Speech</th>
-            <th>Definition</th>
-            <th>Example</th>
-            <th>Similarity</th>
-            <th>Dissimilarity</th>
-        </tr>
-    </thead>
-    <tbody>"""
+    <head>
+        <title>Two Sub-Rows in a Row</title>
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }
+            .sub-table td {
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <th>Word</th>
+                    <th>Part of Speech</th>
+                    <th>Definition</th>
+                    <th>Example</th>
+                    <th>Synonims</th>
+                    <th>Antonyms</th>
+                </tr>
+            </thead>
+            <tbody>"""
 
 for i in result:
-    html += f"<tr><td rowspan={len(i['Similarity'])}>{i['word']}</td><td rowspan={len(i['Similarity'])}>{i['partsOfSpeech']}</td>"
-    # print(len(i["Similarity"]), end="--\n")
     for j in range(len(i["Similarity"])):
         if j == 0:
-            html += f"<td>{i['Definitions'][j]}</td><td>{i['Example'][j]}</td><td>{", ".join(i['Similarity'][j])}</td><td>{", ".join(i['Dissimilarity'][j])}</td></tr>"
+            html += f"""
+                <tr>
+                    <td rowspan={len(i['Similarity'])}>{i['word']}</td>
+                    <td rowspan={len(i['Similarity'])}>{i['partsOfSpeech']}</td>
+                    <td>{i['Definitions'][j]}</td>
+                    <td>{i['Example'][j]}</td>
+                    <td>{", ".join(i['Similarity'][j])}</td>
+                    <td>{", ".join(i['Dissimilarity'][j])}</td>
+                </tr>"""
         else:
-            html += f"\n<tr><td>{i['Definitions'][j]}</td><td>{i['Example'][j]}</td><td>{", ".join(i['Similarity'][j])}</td><td>{", ".join(i['Dissimilarity'][j])}</td></tr>"
+            html += f"""
+                <tr>
+                    <td>{i['Definitions'][j]}</td>
+                    <td>{i['Example'][j]}</td>
+                    <td>{", ".join(i['Similarity'][j])}</td>
+                    <td>{", ".join(i['Dissimilarity'][j])}</td>
+                </tr>"""
 
-html += "\n</tbody></table></body></html>"
+html += """
+            </tbody>
+        </table>
+    </body>
+</html>"""
 
 # Save the output
 with open("output.html", "w") as f:
